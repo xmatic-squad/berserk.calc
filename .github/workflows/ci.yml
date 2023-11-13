@@ -1,0 +1,34 @@
+name: CI
+run-name: Berserk Guide v.1 site
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: deploy
+    steps:
+      - name: Checkout the current branch
+        uses: actions/checkout@v3
+
+      - name: Initialize the ssh-agent
+        uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Scan the host key
+        run: mkdir -p ~/.ssh/ && ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+
+      - name: Clean remote directory
+        run: ssh $DEPLOY_USERNAME@$DEPLOY_SERVER 'rm -rf ./*'
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+
+      - name: Deploy the website with SCP
+        run: scp -r -o StrictHostKeyChecking=no dist/* $DEPLOY_USERNAME@$DEPLOY_SERVER:./
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
