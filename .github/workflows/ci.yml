@@ -16,6 +16,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build the website
+        run: npm run build
+
       - name: Scan the host key
         run: mkdir -p ~/.ssh/ && ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
         env:
@@ -28,7 +34,7 @@ jobs:
           DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
 
       - name: Deploy the website with SCP
-        run: scp -r -o StrictHostKeyChecking=no dist/* $DEPLOY_USERNAME@$DEPLOY_SERVER:./
+        run: scp -r -o StrictHostKeyChecking=no out/* $DEPLOY_USERNAME@$DEPLOY_SERVER:./
         env:
           DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
           DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
